@@ -14,6 +14,7 @@ import {
   fetchInvestigation,
   getStoredInvestigationId,
   storeInvestigationId,
+  clearStoredInvestigationId,
 } from "@/lib/investigationClient";
 import { aboutReconstructionText, sources } from "@/content/sources";
 
@@ -69,6 +70,19 @@ export default function Home() {
     setOpenSection(null);
     setShowSynthesis(false);
     setView("done");
+  }
+
+  function handleSwitchStudent() {
+    if (!investigation) return;
+    const ok = window.confirm(
+      `Switch to a different student on this computer? ${investigation.student_name}'s answers are already saved and will not be lost — you'll just need to enter a new name to continue.`
+    );
+    if (!ok) return;
+    clearStoredInvestigationId();
+    setInvestigation(null);
+    setOpenSection(null);
+    setShowSynthesis(false);
+    setView("entry");
   }
 
   if (view === "loading") {
@@ -155,6 +169,11 @@ export default function Home() {
           humans?&rdquo;
         </p>
 
+        <p className="mt-1 text-sm text-parchment/70">
+          Welcome, <span className="font-semibold text-parchment">{investigation.student_name}</span>
+          {investigation.class_name ? ` · ${investigation.class_name}` : ""}
+        </p>
+
         <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-xs text-parchment/60">
           <span className="rounded-full border border-char-600 px-3 py-1">
             {exploredCount} / 3 Explored
@@ -170,6 +189,12 @@ export default function Home() {
             className="underline decoration-dotted underline-offset-2 hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500 rounded"
           >
             Sources &amp; Credits
+          </button>
+          <button
+            onClick={handleSwitchStudent}
+            className="underline decoration-dotted underline-offset-2 hover:text-ember-400 focus:outline-none focus:ring-2 focus:ring-ochre-500 rounded"
+          >
+            Not {investigation.student_name}? Switch Student
           </button>
         </div>
       </header>
