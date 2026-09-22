@@ -174,10 +174,45 @@ export default function Home() {
           {investigation.class_name ? ` · ${investigation.class_name}` : ""}
         </p>
 
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+          {(
+            [
+              { key: "fire" as SectionKey, label: "Fire" },
+              { key: "caveArt" as SectionKey, label: "Cave Art" },
+              { key: "stoneTools" as SectionKey, label: "Stone Tools" },
+            ] as const
+          ).map((s) => (
+            <span
+              key={s.key}
+              className={
+                "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition " +
+                (completed[s.key]
+                  ? "border-ochre-400/70 bg-ochre-500/15 text-ochre-300"
+                  : "border-char-600 text-parchment/50")
+              }
+            >
+              {completed[s.key] ? (
+                <svg
+                  className="h-3 w-3 text-ochre-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.704 5.29a1 1 0 010 1.415l-7.4 7.4a1 1 0 01-1.415 0l-3.6-3.6a1 1 0 111.415-1.414l2.892 2.892 6.693-6.693a1 1 0 011.415 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <span className="h-1.5 w-1.5 rounded-full border border-parchment/40" />
+              )}
+              {s.label}
+            </span>
+          ))}
+        </div>
+
         <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-xs text-parchment/60">
-          <span className="rounded-full border border-char-600 px-3 py-1">
-            {exploredCount} / 3 Explored
-          </span>
           <button
             onClick={() => setShowAbout(true)}
             className="underline decoration-dotted underline-offset-2 hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500 rounded"

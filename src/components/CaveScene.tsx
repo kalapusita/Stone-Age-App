@@ -50,17 +50,34 @@ export default function CaveScene({
               }
             />
             <span className="relative flex flex-col items-center gap-1">
+              {completed[h.key] ? (
+                <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-ochre-300 bg-ochre-400 text-char-950 shadow-glow transition group-hover:scale-110">
+                  <svg
+                    className="h-3.5 w-3.5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.704 5.29a1 1 0 010 1.415l-7.4 7.4a1 1 0 01-1.415 0l-3.6-3.6a1 1 0 111.415-1.414l2.892 2.892 6.693-6.693a1 1 0 011.415 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              ) : (
+                <span className="h-3.5 w-3.5 rounded-full border-2 border-parchment/70 bg-ember-500/60 transition group-hover:bg-ember-400 group-hover:scale-125" />
+              )}
               <span
                 className={
-                  "h-3.5 w-3.5 rounded-full border-2 transition " +
+                  "pointer-events-none whitespace-nowrap rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wider shadow transition " +
                   (completed[h.key]
-                    ? "border-ochre-300 bg-ochre-400"
-                    : "border-parchment/70 bg-ember-500/60 group-hover:bg-ember-400 group-hover:scale-125")
+                    ? "bg-ochre-400 text-char-950 opacity-100"
+                    : "bg-char-950/90 text-parchment opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100")
                 }
-              />
-              <span className="pointer-events-none whitespace-nowrap rounded bg-char-950/90 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-parchment opacity-0 shadow transition group-hover:opacity-100 group-focus-visible:opacity-100">
+              >
                 {h.label}
-                {completed[h.key] && <span className="ml-1 text-ochre-400">✓ Explored</span>}
+                {completed[h.key] && <span className="ml-1">✓</span>}
               </span>
             </span>
           </button>
