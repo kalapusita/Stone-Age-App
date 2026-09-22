@@ -11,9 +11,9 @@ interface Hotspot {
 }
 
 const HOTSPOTS: Hotspot[] = [
-  { key: "fire", label: "MAKING FIRE", left: "30%", top: "52%" },
+  { key: "fire", label: "FIRE", left: "30%", top: "52%" },
   { key: "caveArt", label: "CAVE ART", left: "54%", top: "20%" },
-  { key: "stoneTools", label: "MAKING STONE TOOLS", left: "82%", top: "63%" },
+  { key: "stoneTools", label: "STONE TOOLS", left: "82%", top: "63%" },
 ];
 
 export default function CaveScene({
