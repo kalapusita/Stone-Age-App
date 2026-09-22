@@ -1,0 +1,131 @@
+"use client";
+
+import { ReactNode } from "react";
+
+export function StageStepper({
+  stages,
+  current,
+}: {
+  stages: string[];
+  current: number;
+}) {
+  return (
+    <div className="mb-6 flex items-center gap-2 text-xs uppercase tracking-wider text-parchment/60">
+      {stages.map((s, i) => (
+        <div key={s} className="flex items-center gap-2">
+          <span
+            className={
+              i === current
+                ? "rounded-full bg-ochre-500 px-2.5 py-1 text-char-950 font-semibold"
+                : i < current
+                ? "rounded-full border border-ochre-500/60 px-2.5 py-1 text-ochre-400"
+                : "rounded-full border border-char-600 px-2.5 py-1"
+            }
+          >
+            {i + 1}. {s}
+          </span>
+          {i < stages.length - 1 && <span className="text-char-600">—</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function EvidenceFigure({
+  src,
+  alt,
+  caption,
+}: {
+  src: string;
+  alt: string;
+  caption: string;
+}) {
+  return (
+    <figure className="my-4">
+      <div className="mb-2 inline-block rounded bg-ember-600/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-ember-400">
+        Archaeological Evidence
+      </div>
+      <div className="overflow-hidden rounded border border-char-700 bg-char-950/60 p-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          className="mx-auto max-h-[420px] w-auto object-contain"
+        />
+      </div>
+      <figcaption className="mt-2 text-sm italic text-parchment/70">
+        {caption}
+      </figcaption>
+    </figure>
+  );
+}
+
+export function NextBackRow({
+  onBack,
+  onNext,
+  nextLabel = "NEXT",
+  nextDisabled = false,
+}: {
+  onBack?: () => void;
+  onNext?: () => void;
+  nextLabel?: string;
+  nextDisabled?: boolean;
+}) {
+  return (
+    <div className="mt-8 flex items-center justify-between">
+      <div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="rounded border border-char-600 px-4 py-2 text-sm hover:border-ochre-500 hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500"
+          >
+            BACK
+          </button>
+        )}
+      </div>
+      {onNext && (
+        <button
+          onClick={onNext}
+          disabled={nextDisabled}
+          className="rounded bg-ochre-500 px-5 py-2 text-sm font-semibold text-char-950 hover:bg-ochre-400 disabled:cursor-not-allowed disabled:bg-char-700 disabled:text-parchment/40 focus:outline-none focus:ring-2 focus:ring-ochre-300"
+        >
+          {nextLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function ProseBlock({ text }: { text: string }) {
+  return (
+    <div className="space-y-3 text-[15px] leading-relaxed text-parchment/90">
+      {text
+        .split("\n\n")
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+    </div>
+  );
+}
+
+export function ErrorNote({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <div
+      role="alert"
+      className="mt-3 rounded border border-ember-600 bg-ember-600/10 px-3 py-2 text-sm text-ember-400"
+    >
+      {message}
+    </div>
+  );
+}
+
+export function SectionHeading({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="mb-2 text-sm font-semibold uppercase tracking-widest text-ochre-400">
+      {children}
+    </h3>
+  );
+}
