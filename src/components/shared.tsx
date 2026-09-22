@@ -1,6 +1,50 @@
 "use client";
 
 import { ReactNode } from "react";
+import { glossary } from "@/content/glossary";
+import GlossaryTerm from "./GlossaryTerm";
+
+// Wraps the first occurrence of each glossary term in a paragraph of text
+// with a GlossaryTerm tooltip. `usedTerms` is shared across paragraphs in
+// the same ProseBlock call, so each term is only ever defined once per
+// reading passage, even if the word appears again later.
+function linkifyGlossary(text: string, usedTerms: Set<string>): ReactNode[] {
+  const termNames = Object.keys(glossary);
+  if (termNames.length === 0) return [text];
+  const pattern = new RegExp(`\\b(${termNames.join("|")})s?\\b`, "gi");
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = pattern.exec(text))) {
+    const matched = match[0];
+    const canonical = termNames.find(
+      (t) => t.toLowerCase() === matched.replace(/s$/i, "").toLowerCase()
+    );
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    if (canonical && !usedTerms.has(canonical)) {
+      usedTerms.add(canonical);
+      nodes.push(
+        <GlossaryTerm key={`gt-${key++}`} term={matched} definition={glossary[canonical]} />
+      );
+    } else {
+      nodes.push(matched);
+    }
+    lastIndex = match.index + matched.length;
+  }
+  nodes.push(text.slice(lastIndex));
+  return nodes;
+}
+
+// For a single string (not split into paragraphs) -- used for short notes
+// like the Fire investigation's "context" callout.
+export function GlossaryText({ text }: { text: string }) {
+  const usedTerms = new Set<string>();
+  return <>{linkifyGlossary(text, usedTerms)}</>;
+}
 
 export function StageStepper({
   stages,
@@ -96,7 +140,14 @@ export function NextBackRow({
   );
 }
 
-export function ProseBlock({ text }: { text: string }) {
+export function ProseBlock({
+  text,
+  useGlossary = false,
+}: {
+  text: string;
+  useGlossary?: boolean;
+}) {
+  const usedTerms = new Set<string>();
   return (
     <div className="space-y-3 text-[15px] leading-relaxed text-parchment/90">
       {text
@@ -104,7 +155,7 @@ export function ProseBlock({ text }: { text: string }) {
         .map((p) => p.trim())
         .filter(Boolean)
         .map((p, i) => (
-          <p key={i}>{p}</p>
+          <p key={i}>{useGlossary ? linkifyGlossary(p, usedTerms) : p}</p>
         ))}
     </div>
   );

@@ -28,7 +28,8 @@ We know the paintings existed. Their meaning is an interpretation.`,
   interpretation: "What the paintings meant.",
 
   evidenceImage: "/images/cave-art-chauvet.jpg",
-  evidenceCaption: "Animal paintings — Chauvet Cave, France, more than 30,000 years old.",
+  evidenceCaption:
+    "Animal paintings — Chauvet Cave, France, more than 30,000 years old. Bison, horses and other animals rendered in charcoal and red ochre pigment directly onto the rock.",
 
   observationPrompt: "Look carefully. What can you actually observe?",
   observations: [

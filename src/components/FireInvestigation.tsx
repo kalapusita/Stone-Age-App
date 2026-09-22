@@ -7,6 +7,7 @@ import {
   EvidenceFigure,
   NextBackRow,
   ProseBlock,
+  GlossaryText,
   ErrorNote,
   SectionHeading,
 } from "./shared";
@@ -82,7 +83,7 @@ export default function FireInvestigation({
           <ProseBlock text={c.hook} />
           <div className="my-5 h-px bg-char-700" />
           <SectionHeading>{c.readingHeading}</SectionHeading>
-          <ProseBlock text={c.reading} />
+          <ProseBlock text={c.reading} useGlossary />
           <NextBackRow onNext={() => setStage(1)} nextLabel="NEXT" />
         </div>
       )}
@@ -120,7 +121,7 @@ export default function FireInvestigation({
             </div>
           )}
           <p className="mt-5 rounded border-l-2 border-ochre-500 bg-char-950/40 px-4 py-3 text-sm italic text-parchment/75">
-            {c.contextNote}
+            <GlossaryText text={c.contextNote} />
           </p>
           <NextBackRow onBack={() => setStage(0)} onNext={() => setStage(2)} />
         </div>

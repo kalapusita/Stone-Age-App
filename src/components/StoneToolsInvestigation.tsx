@@ -75,7 +75,7 @@ export default function StoneToolsInvestigation({
         <div>
           <ProseBlock text={c.hook} />
           <div className="my-5 h-px bg-char-700" />
-          <ProseBlock text={c.reading} />
+          <ProseBlock text={c.reading} useGlossary />
           <NextBackRow onNext={() => setStage(1)} nextLabel="NEXT" />
         </div>
       )}

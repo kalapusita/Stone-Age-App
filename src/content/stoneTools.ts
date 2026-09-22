@@ -20,8 +20,8 @@ Stone tools therefore tell archaeologists more than simply what people owned. Th
   progressionNote:
     "This shows one general pattern seen at some sites over a very long time span — it was not a single, universal, one-way progression that happened identically everywhere.",
   progression: [
-    { key: "core", label: "CORE + FLAKES", image: "/images/stone-tools-oldowan.jpg", caption: "Oldowan core and flake tools — among the earliest widespread stone technology, more than 2.6 million years ago." },
-    { key: "handaxe", label: "SHAPED HANDAXE", image: "/images/stone-tools-handaxe.jpg", caption: "Acheulean handaxe — a deliberately shaped cutting tool, from around 1.76 million years ago onward." },
+    { key: "core", label: "CORE + FLAKES", image: "/images/stone-tools-oldowan.jpg", caption: "Oldowan core and flake tools — among the earliest widespread stone technology, more than 2.6 million years ago. Made by striking flakes off a stone core with a hammerstone; the sharp edges of the flakes could cut and scrape." },
+    { key: "handaxe", label: "SHAPED HANDAXE", image: "/images/stone-tools-handaxe.jpg", caption: "Acheulean handaxe — a deliberately shaped cutting tool, from around 1.76 million years ago onward. Worked on both faces into a teardrop shape, a design repeated across vast distances and spans of time." },
     { key: "specialized", label: "MORE SPECIALIZED / COMPOSITE TOOLS", image: null, caption: "Later tools became more varied and specialized, including points and scrapers, some attached to wooden shafts." },
   ],
 

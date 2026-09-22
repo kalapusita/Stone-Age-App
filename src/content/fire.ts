@@ -20,7 +20,7 @@ But there was another major step: being able to start a fire rather than simply 
 
   evidenceImage: "/images/fire-evidence-gesher.jpg",
   evidenceCaption:
-    "Fire-altered stone tools — Gesher Benot Ya'aqov, Israel, approximately 790,000 years ago.",
+    "Fire-altered stone tools — Gesher Benot Ya'aqov, Israel, approximately 790,000 years ago. These flints show color changes and fracture patterns consistent with heat exposure, one of the clues archaeologists use to identify ancient hearths.",
 
   investigationPrompt: "How can archaeologists know that humans were using fire?",
   evidenceCategories: [
