@@ -8,6 +8,8 @@ import {
   ProseBlock,
   ErrorNote,
   SectionHeading,
+  WordCounter,
+  countWords,
 } from "./shared";
 import KnappingDemo from "./KnappingDemo";
 import { stoneToolsContent as c } from "@/content/stoneTools";
@@ -15,6 +17,7 @@ import { Investigation } from "@/types/investigation";
 import { saveInvestigation } from "@/lib/investigationClient";
 
 const STAGES = ["Learn", "Investigate Evidence", "Think / Respond"];
+const MIN_WORDS = 75;
 
 export default function StoneToolsInvestigation({
   investigation,
@@ -44,7 +47,7 @@ export default function StoneToolsInvestigation({
     );
   }
 
-  const canSubmit = response.trim().length >= 20;
+  const canSubmit = countWords(response) >= MIN_WORDS;
 
   async function handleSave() {
     if (!canSubmit) return;
@@ -172,6 +175,7 @@ export default function StoneToolsInvestigation({
               className="w-full rounded border border-char-600 bg-char-950/60 p-3 text-[15px] leading-relaxed text-parchment focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
               placeholder="Use the evidence and the knapping demonstration to support your answer..."
             />
+            <WordCounter text={response} min={MIN_WORDS} />
           </div>
 
           <ErrorNote message={error} />

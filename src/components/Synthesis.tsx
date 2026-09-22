@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Panel from "./Panel";
-import { ErrorNote, SectionHeading } from "./shared";
+import { ErrorNote, SectionHeading, WordCounter, countWords } from "./shared";
 import { Investigation } from "@/types/investigation";
 import { saveInvestigation } from "@/lib/investigationClient";
+
+const MIN_WORDS = 150;
 
 const STARTERS = [
   "Archaeological evidence suggests that...",
@@ -28,7 +30,7 @@ export default function Synthesis({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = response.trim().length >= 40;
+  const canSubmit = countWords(response) >= MIN_WORDS;
 
   async function handleSubmit() {
     if (!canSubmit) return;
@@ -94,7 +96,8 @@ export default function Synthesis({
         What can archaeological evidence tell us about the lives of prehistoric humans?
       </SectionHeading>
       <p className="mb-4 text-sm text-parchment/70">
-        Write 3–5 sentences. Use evidence from at least TWO parts of your investigation.
+        Write a short paragraph (at least {MIN_WORDS} words). Use evidence from at least
+        TWO parts of your investigation.
       </p>
 
       <div className="mb-3 flex flex-wrap gap-2">
@@ -117,6 +120,7 @@ export default function Synthesis({
         className="w-full rounded border border-char-600 bg-char-950/60 p-4 text-[15px] leading-relaxed text-parchment focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
         placeholder="Write your conclusion here..."
       />
+      <WordCounter text={response} min={MIN_WORDS} />
 
       <ErrorNote message={error} />
 

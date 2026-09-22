@@ -140,6 +140,24 @@ export function NextBackRow({
   );
 }
 
+export function countWords(text: string): number {
+  return text.trim().length === 0 ? 0 : text.trim().split(/\s+/).length;
+}
+
+export function WordCounter({ text, min }: { text: string; min: number }) {
+  const count = countWords(text);
+  const met = count >= min;
+  return (
+    <p
+      className={
+        "mt-1.5 text-xs " + (met ? "text-ochre-400" : "text-parchment/50")
+      }
+    >
+      {count} / {min} words{met ? " — ready to save" : ""}
+    </p>
+  );
+}
+
 export function ProseBlock({
   text,
   useGlossary = false,

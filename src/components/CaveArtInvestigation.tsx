@@ -9,12 +9,15 @@ import {
   ProseBlock,
   ErrorNote,
   SectionHeading,
+  WordCounter,
+  countWords,
 } from "./shared";
 import { caveArtContent as c } from "@/content/caveArt";
 import { Investigation } from "@/types/investigation";
 import { saveInvestigation } from "@/lib/investigationClient";
 
 const STAGES = ["Learn", "Investigate Evidence", "Think / Respond"];
+const MIN_WORDS = 75;
 
 export default function CaveArtInvestigation({
   investigation,
@@ -43,7 +46,7 @@ export default function CaveArtInvestigation({
     );
   }
 
-  const canSubmit = !!interpretation && explanation.trim().length >= 20;
+  const canSubmit = !!interpretation && countWords(explanation) >= MIN_WORDS;
 
   async function handleSave() {
     if (!canSubmit) return;
@@ -176,6 +179,7 @@ export default function CaveArtInvestigation({
               className="w-full rounded border border-char-600 bg-char-950/60 p-3 text-[15px] leading-relaxed text-parchment focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
               placeholder="What did you observe that supports this interpretation?"
             />
+            <WordCounter text={explanation} min={MIN_WORDS} />
           </div>
 
           <ErrorNote message={error} />
