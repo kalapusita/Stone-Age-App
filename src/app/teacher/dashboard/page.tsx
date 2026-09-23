@@ -6,24 +6,44 @@ import { supabase } from "@/lib/supabaseClient";
 import { Investigation } from "@/types/investigation";
 import { fireContent } from "@/content/fire";
 import { caveArtContent } from "@/content/caveArt";
+import { fmtDate, Check, toCsvValue } from "@/lib/teacherFormat";
 
-function fmtDate(v: string | null) {
-  if (!v) return "—";
-  return new Date(v).toLocaleString();
+type StatusFilter = "all" | "submitted" | "in_progress";
+type SortKey = "name" | "class" | "status" | "activity";
+type SortDir = "asc" | "desc";
+
+function activityTime(r: Investigation): number {
+  return new Date(r.submitted_at || r.updated_at).getTime();
 }
 
-function Check({ done }: { done: boolean }) {
-  return done ? (
-    <span className="text-ochre-400">✓</span>
-  ) : (
-    <span className="text-parchment/30">—</span>
+function SortHeader({
+  label,
+  sortKey,
+  activeKey,
+  dir,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  activeKey: SortKey;
+  dir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sortKey === activeKey;
+  return (
+    <th className="px-3 py-2.5">
+      <button
+        onClick={() => onSort(sortKey)}
+        className={
+          "flex items-center gap-1 uppercase tracking-wide hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500 rounded " +
+          (active ? "text-ochre-400" : "")
+        }
+      >
+        {label}
+        {active && <span aria-hidden="true">{dir === "asc" ? "▲" : "▼"}</span>}
+      </button>
+    </th>
   );
-}
-
-function toCsvValue(v: unknown) {
-  const s = v === null || v === undefined ? "" : String(v);
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-  return s;
 }
 
 export default function TeacherDashboard() {
@@ -32,9 +52,12 @@ export default function TeacherDashboard() {
   const [rows, setRows] = useState<Investigation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Investigation | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<Investigation | null>(null);
-  const [deleting, setDeleting] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [classFilter, setClassFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("activity");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   useEffect(() => {
     let active = true;
@@ -73,45 +96,113 @@ export default function TeacherDashboard() {
     router.replace("/teacher");
   }
 
-  async function confirmDelete() {
-    if (!pendingDelete) return;
-    setDeleting(true);
-    const { error } = await supabase
-      .from("investigations")
-      .delete()
-      .eq("id", pendingDelete.id);
-    setDeleting(false);
-    if (error) {
-      setError(error.message);
-      return;
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "activity" ? "desc" : "asc");
     }
-    setRows((prev) => prev.filter((r) => r.id !== pendingDelete.id));
-    setPendingDelete(null);
-    if (selected?.id === pendingDelete.id) setSelected(null);
+  }
+
+  const classOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows) {
+      if (r.class_name) set.add(r.class_name);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = rows.filter((r) => {
+      if (classFilter !== "all" && r.class_name !== classFilter) return false;
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (q && !r.student_name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    const dirMul = sortDir === "asc" ? 1 : -1;
+    filtered.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "name":
+          cmp = a.student_name.toLowerCase().localeCompare(b.student_name.toLowerCase());
+          break;
+        case "class":
+          cmp = (a.class_name || "").toLowerCase().localeCompare((b.class_name || "").toLowerCase());
+          break;
+        case "status":
+          cmp = a.status.localeCompare(b.status);
+          break;
+        case "activity":
+          cmp = activityTime(a) - activityTime(b);
+          break;
+      }
+      return cmp * dirMul;
+    });
+
+    return filtered;
+  }, [rows, search, classFilter, statusFilter, sortKey, sortDir]);
+
+  const stats = useMemo(() => {
+    const submitted = filteredRows.filter((r) => r.status === "submitted").length;
+    return {
+      total: filteredRows.length,
+      submitted,
+      inProgress: filteredRows.length - submitted,
+    };
+  }, [filteredRows]);
+
+  function openStudent(r: Investigation) {
+    const ids = filteredRows.map((row) => row.id).join(",");
+    router.push(`/teacher/student/${r.id}?ids=${encodeURIComponent(ids)}`);
   }
 
   function exportCsv() {
     const headers = [
-      "student_name",
-      "class_name",
-      "started_at",
-      "fire_effect_1",
-      "fire_effect_2",
-      "fire_response",
-      "fire_completed_at",
-      "cave_art_interpretation",
-      "cave_art_response",
-      "cave_art_completed_at",
-      "stone_tools_response",
-      "stone_tools_completed_at",
-      "final_response",
-      "submitted_at",
-      "status",
+      "Student Name",
+      "Class",
+      "Status",
+      "Started",
+      "Last Activity",
+      "Fire Selections",
+      "Fire Response",
+      "Cave Art Interpretation",
+      "Cave Art Response",
+      "Stone Tools Response",
+      "Final Response",
+      "Submitted At",
     ];
-    const lines = [headers.join(",")];
-    for (const r of rows) {
-      lines.push(headers.map((h) => toCsvValue((r as any)[h])).join(","));
+
+    const lines = [headers.map(toCsvValue).join(",")];
+    for (const r of filteredRows) {
+      const fireLabels = [r.fire_effect_1, r.fire_effect_2]
+        .filter(Boolean)
+        .map((k) => fireContent.effectOptions.find((o) => o.key === k)?.label ?? k)
+        .join("; ");
+      const caveArtLabel = r.cave_art_interpretation
+        ? caveArtContent.interpretationOptions.find((o) => o.key === r.cave_art_interpretation)
+            ?.label ?? r.cave_art_interpretation
+        : "";
+
+      const values = [
+        r.student_name,
+        r.class_name || "",
+        r.status === "submitted" ? "Submitted" : "In Progress",
+        r.started_at,
+        r.updated_at,
+        fireLabels,
+        r.fire_response || "",
+        caveArtLabel,
+        r.cave_art_response || "",
+        r.stone_tools_response || "",
+        r.final_response || "",
+        r.submitted_at || "",
+      ];
+      lines.push(values.map(toCsvValue).join(","));
     }
+
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -120,11 +211,6 @@ export default function TeacherDashboard() {
     a.click();
     URL.revokeObjectURL(url);
   }
-
-  const stats = useMemo(() => {
-    const submitted = rows.filter((r) => r.status === "submitted").length;
-    return { total: rows.length, submitted };
-  }, [rows]);
 
   if (checkingAuth) {
     return (
@@ -141,13 +227,14 @@ export default function TeacherDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-parchment">Teacher Dashboard</h1>
             <p className="text-sm text-parchment/60">
-              {stats.total} investigation{stats.total === 1 ? "" : "s"} · {stats.submitted} submitted
+              {stats.total} Student{stats.total === 1 ? "" : "s"} · {stats.submitted} Submitted ·{" "}
+              {stats.inProgress} In Progress
             </p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={exportCsv}
-              disabled={rows.length === 0}
+              disabled={filteredRows.length === 0}
               className="rounded border border-char-600 px-4 py-2 text-sm hover:border-ochre-500 hover:text-ochre-300 disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-ochre-500"
             >
               Export CSV
@@ -167,43 +254,83 @@ export default function TeacherDashboard() {
           </div>
         )}
 
-        <div className="mt-6 overflow-x-auto rounded border border-char-700">
-          <table className="w-full min-w-[720px] text-left text-sm">
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search students..."
+            className="w-full max-w-xs rounded border border-char-600 bg-char-950/60 px-3 py-2 text-sm text-parchment placeholder:text-parchment/40 focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          />
+          <select
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            className="rounded border border-char-600 bg-char-950/60 px-3 py-2 text-sm text-parchment focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          >
+            <option value="all">All Classes</option>
+            {classOptions.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            className="rounded border border-char-600 bg-char-950/60 px-3 py-2 text-sm text-parchment focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
+          >
+            <option value="all">All Statuses</option>
+            <option value="submitted">Submitted</option>
+            <option value="in_progress">In Progress</option>
+          </select>
+        </div>
+
+        <div className="mt-4 overflow-x-auto rounded border border-char-700">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-char-900 text-xs uppercase tracking-wide text-parchment/60">
               <tr>
-                <th className="px-3 py-2.5">Student</th>
-                <th className="px-3 py-2.5">Class</th>
+                <SortHeader label="Student" sortKey="name" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+                <SortHeader label="Class" sortKey="class" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
                 <th className="px-3 py-2.5">Fire</th>
                 <th className="px-3 py-2.5">Cave Art</th>
                 <th className="px-3 py-2.5">Stone Tools</th>
                 <th className="px-3 py-2.5">Final</th>
-                <th className="px-3 py-2.5">Status</th>
-                <th className="px-3 py-2.5">Submitted</th>
-                <th className="px-3 py-2.5" />
+                <SortHeader label="Status" sortKey="status" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+                <SortHeader label="Submitted" sortKey="activity" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={9} className="px-3 py-6 text-center text-parchment/50">
+                  <td colSpan={8} className="px-3 py-6 text-center text-parchment/50">
                     Loading…
                   </td>
                 </tr>
               )}
               {!loading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-3 py-6 text-center text-parchment/50">
-                    No investigations yet.
+                  <td colSpan={8} className="px-3 py-6 text-center text-parchment/50">
+                    No investigations yet. Student submissions will appear here once they begin
+                    the activity.
                   </td>
                 </tr>
               )}
-              {rows.map((r) => (
+              {!loading && rows.length > 0 && filteredRows.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-3 py-6 text-center text-parchment/50">
+                    No students match the current search and filters.
+                  </td>
+                </tr>
+              )}
+              {filteredRows.map((r) => (
                 <tr
                   key={r.id}
                   className="cursor-pointer border-t border-char-800 hover:bg-char-900/60"
-                  onClick={() => setSelected(r)}
+                  onClick={() => openStudent(r)}
                 >
-                  <td className="px-3 py-2.5 font-medium text-parchment">{r.student_name}</td>
+                  <td className="px-3 py-2.5 font-medium text-parchment underline decoration-dotted underline-offset-2">
+                    {r.student_name}
+                  </td>
                   <td className="px-3 py-2.5 text-parchment/70">{r.class_name || "—"}</td>
                   <td className="px-3 py-2.5"><Check done={!!r.fire_completed_at} /></td>
                   <td className="px-3 py-2.5"><Check done={!!r.cave_art_completed_at} /></td>
@@ -212,26 +339,22 @@ export default function TeacherDashboard() {
                   <td className="px-3 py-2.5">
                     <span
                       className={
-                        "rounded-full px-2 py-0.5 text-xs " +
+                        "rounded px-1.5 py-0.5 text-xs " +
                         (r.status === "submitted"
-                          ? "bg-ochre-500/20 text-ochre-300"
-                          : "bg-char-700 text-parchment/60")
+                          ? "text-ochre-300"
+                          : "text-parchment/60")
                       }
                     >
-                      {r.status}
+                      {r.status === "submitted" ? "Submitted" : "In Progress"}
                     </span>
+                    {r.status !== "submitted" && (
+                      <div className="mt-0.5 text-[11px] text-parchment/40">
+                        Last active {fmtDate(r.updated_at)}
+                      </div>
+                    )}
                   </td>
-                  <td className="px-3 py-2.5 text-parchment/60">{fmtDate(r.submitted_at)}</td>
-                  <td className="px-3 py-2.5 text-right">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPendingDelete(r);
-                      }}
-                      className="rounded border border-char-600 px-2 py-1 text-xs text-parchment/60 hover:border-ember-500 hover:text-ember-400 focus:outline-none focus:ring-2 focus:ring-ochre-500"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-3 py-2.5 text-parchment/60">
+                    {r.status === "submitted" ? fmtDate(r.submitted_at) : "—"}
                   </td>
                 </tr>
               ))}
@@ -239,128 +362,6 @@ export default function TeacherDashboard() {
           </table>
         </div>
       </div>
-
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80" onClick={() => setSelected(null)} />
-          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto panel-scroll rounded border border-char-600 bg-char-900 p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-parchment">{selected.student_name}</h2>
-                <p className="text-sm text-parchment/60">
-                  {selected.class_name || "No class listed"} · Started {fmtDate(selected.started_at)}
-                </p>
-              </div>
-              <button
-                onClick={() => setSelected(null)}
-                className="rounded border border-char-600 px-3 py-1.5 text-sm hover:border-ochre-500 hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="mt-6 space-y-6">
-              <section>
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-ochre-400">Fire</h3>
-                {selected.fire_completed_at ? (
-                  <div className="mt-2 space-y-2 text-sm">
-                    <p className="text-parchment/80">
-                      Selected effects:{" "}
-                      <span className="font-medium text-parchment">
-                        {[selected.fire_effect_1, selected.fire_effect_2]
-                          .filter(Boolean)
-                          .map(
-                            (k) =>
-                              fireContent.effectOptions.find((o) => o.key === k)?.label ?? k
-                          )
-                          .join(", ")}
-                      </span>
-                    </p>
-                    <p className="whitespace-pre-wrap rounded border border-char-700 bg-char-950/40 p-3 text-parchment/85">
-                      {selected.fire_response}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="mt-2 text-sm text-parchment/40">Not yet completed.</p>
-                )}
-              </section>
-
-              <section>
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-ochre-400">Cave Art</h3>
-                {selected.cave_art_completed_at ? (
-                  <div className="mt-2 space-y-2 text-sm">
-                    <p className="text-parchment/80">
-                      Interpretation:{" "}
-                      <span className="font-medium text-parchment">
-                        {caveArtContent.interpretationOptions.find(
-                          (o) => o.key === selected.cave_art_interpretation
-                        )?.label ?? selected.cave_art_interpretation}
-                      </span>
-                    </p>
-                    <p className="whitespace-pre-wrap rounded border border-char-700 bg-char-950/40 p-3 text-parchment/85">
-                      {selected.cave_art_response}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="mt-2 text-sm text-parchment/40">Not yet completed.</p>
-                )}
-              </section>
-
-              <section>
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-ochre-400">Stone Tools</h3>
-                {selected.stone_tools_completed_at ? (
-                  <p className="mt-2 whitespace-pre-wrap rounded border border-char-700 bg-char-950/40 p-3 text-sm text-parchment/85">
-                    {selected.stone_tools_response}
-                  </p>
-                ) : (
-                  <p className="mt-2 text-sm text-parchment/40">Not yet completed.</p>
-                )}
-              </section>
-
-              <section>
-                <h3 className="text-sm font-semibold uppercase tracking-widest text-ochre-400">
-                  Final Conclusion
-                </h3>
-                {selected.final_response ? (
-                  <p className="mt-2 whitespace-pre-wrap rounded border border-char-700 bg-char-950/40 p-3 text-sm text-parchment/85">
-                    {selected.final_response}
-                  </p>
-                ) : (
-                  <p className="mt-2 text-sm text-parchment/40">Not yet submitted.</p>
-                )}
-              </section>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {pendingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80" />
-          <div className="relative w-full max-w-sm rounded border border-char-600 bg-char-900 p-6">
-            <h3 className="text-lg font-bold text-parchment">Delete submission?</h3>
-            <p className="mt-2 text-sm text-parchment/70">
-              This will permanently delete {pendingDelete.student_name}&rsquo;s investigation.
-              This cannot be undone.
-            </p>
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={() => setPendingDelete(null)}
-                className="rounded border border-char-600 px-4 py-2 text-sm hover:border-ochre-500 hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="rounded bg-ember-500 px-4 py-2 text-sm font-semibold text-char-950 hover:bg-ember-400 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ember-300"
-              >
-                {deleting ? "Deleting…" : "Delete permanently"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
