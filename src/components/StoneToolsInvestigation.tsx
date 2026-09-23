@@ -117,10 +117,9 @@ export default function StoneToolsInvestigation({
           </div>
 
           <div className="mt-6">
-            <SectionHeading>Try knapping a core</SectionHeading>
+            <SectionHeading>Make a stone tool</SectionHeading>
             <p className="mb-3 text-sm text-parchment/80">{c.knappingIntro}</p>
             <KnappingDemo />
-            <p className="mt-3 text-sm italic text-parchment/70">{c.knappingOutro}</p>
           </div>
 
           <NextBackRow onBack={() => setStage(0)} onNext={() => setStage(2)} />

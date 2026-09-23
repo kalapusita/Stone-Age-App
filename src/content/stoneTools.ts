@@ -26,9 +26,7 @@ Stone tools therefore tell archaeologists more than simply what people owned. Th
   ],
 
   knappingIntro:
-    "Try it yourself. Choose points to strike along the edge of the core with a hammerstone. Deliberate, well-placed strikes remove flakes and gradually produce a sharper, more useful edge.",
-  knappingOutro:
-    "Making an effective stone tool required more than force. It required knowledge of how stone fractures, and deliberate, controlled action.",
+    "Early humans shaped stone by striking it with another stone. Try it yourself. Choose where to strike the stone and watch how pieces break away to create a sharp edge.",
 
   archaeologistQuestion:
     "An archaeologist discovers a deliberately shaped stone tool. What might it tell us about its maker?",
