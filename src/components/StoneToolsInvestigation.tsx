@@ -8,6 +8,7 @@ import {
   ProseBlock,
   ErrorNote,
   SectionHeading,
+  ActivityTag,
   WordCounter,
   countWords,
 } from "./shared";
@@ -117,6 +118,7 @@ export default function StoneToolsInvestigation({
           </div>
 
           <div className="mt-6">
+            <ActivityTag />
             <SectionHeading>Make a stone tool</SectionHeading>
             <p className="mb-3 text-sm text-parchment/80">{c.knappingIntro}</p>
             <KnappingDemo />
@@ -128,8 +130,10 @@ export default function StoneToolsInvestigation({
 
       {stage === 2 && (
         <div>
+          <ActivityTag />
           <SectionHeading>Think Like an Archaeologist</SectionHeading>
           <p className="mb-3 text-sm text-parchment/80">{c.archaeologistQuestion}</p>
+          <p className="mb-3 text-xs text-parchment/60">Select the ideas you think are reasonable conclusions.</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {c.supportedInferences.map((inf) => {
               const selected = selectedInferences.includes(inf.key);

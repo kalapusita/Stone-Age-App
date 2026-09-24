@@ -198,3 +198,15 @@ export function SectionHeading({ children }: { children: ReactNode }) {
     </h3>
   );
 }
+
+// A small, consistent visual cue marking a block that needs the student to
+// click, select, or write something — as opposed to plain reading content.
+// Used the same way across every investigation so the pattern becomes
+// familiar after the first section.
+export function ActivityTag() {
+  return (
+    <span className="mb-2 inline-block rounded bg-ochre-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-ochre-400">
+      Your Turn
+    </span>
+  );
+}

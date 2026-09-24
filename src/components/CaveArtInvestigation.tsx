@@ -9,6 +9,7 @@ import {
   ProseBlock,
   ErrorNote,
   SectionHeading,
+  ActivityTag,
   WordCounter,
   countWords,
 } from "./shared";
@@ -108,6 +109,10 @@ export default function CaveArtInvestigation({
             caption={c.evidenceCaption}
           />
           <SectionHeading>{c.observationPrompt}</SectionHeading>
+          <div className="mb-2">
+            <ActivityTag />
+            <p className="text-sm text-parchment/70">Select everything you can actually observe below.</p>
+          </div>
           <div className="flex flex-wrap gap-2">
             {c.observations.map((obs) => {
               const selected = selectedObservations.includes(obs.key);
@@ -137,6 +142,7 @@ export default function CaveArtInvestigation({
 
       {stage === 2 && !justSaved && (
         <div>
+          <ActivityTag />
           <SectionHeading>{c.interpretationQuestion}</SectionHeading>
           <p className="mb-3 text-xs uppercase tracking-wide text-parchment/50">
             Choose one interpretation below to continue.

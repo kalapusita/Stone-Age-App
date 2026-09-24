@@ -10,6 +10,7 @@ import {
   GlossaryText,
   ErrorNote,
   SectionHeading,
+  ActivityTag,
   WordCounter,
   countWords,
 } from "./shared";
@@ -99,6 +100,12 @@ export default function FireInvestigation({
             caption={c.evidenceCaption}
           />
           <SectionHeading>{c.investigationPrompt}</SectionHeading>
+          <div className="mb-3">
+            <ActivityTag />
+            <p className="text-sm text-parchment/70">
+              Click each category below to see the evidence archaeologists look for.
+            </p>
+          </div>
           <div className="grid gap-3 sm:grid-cols-3">
             {c.evidenceCategories.map((cat) => (
               <button
@@ -132,6 +139,7 @@ export default function FireInvestigation({
 
       {stage === 2 && (
         <div>
+          <ActivityTag />
           <SectionHeading>{c.responseQuestion}</SectionHeading>
           <p className="mb-3 text-xs text-parchment/60">
             Choose exactly two ({effects.length}/2 selected).
