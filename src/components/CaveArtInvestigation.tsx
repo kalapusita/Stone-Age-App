@@ -138,6 +138,9 @@ export default function CaveArtInvestigation({
       {stage === 2 && !justSaved && (
         <div>
           <SectionHeading>{c.interpretationQuestion}</SectionHeading>
+          <p className="mb-3 text-xs uppercase tracking-wide text-parchment/50">
+            Choose one interpretation below to continue.
+          </p>
           <div className="grid gap-3">
             {c.interpretationOptions.map((opt) => {
               const selected = interpretation === opt.key;
@@ -184,7 +187,15 @@ export default function CaveArtInvestigation({
 
           <ErrorNote message={error} />
 
-          <div className="mt-8 flex items-center justify-between">
+          {!canSubmit && !saving && (
+            <p className="mt-3 text-right text-xs text-ember-400/90">
+              {!interpretation
+                ? "Select an interpretation above before saving."
+                : `Write at least ${MIN_WORDS} words to continue.`}
+            </p>
+          )}
+
+          <div className="mt-2 flex items-center justify-between">
             <button
               onClick={() => setStage(1)}
               className="rounded border border-char-600 px-4 py-2 text-sm hover:border-ochre-500 hover:text-ochre-300 focus:outline-none focus:ring-2 focus:ring-ochre-500"
