@@ -39,7 +39,7 @@ export default function StoneToolsInvestigation({
 
   function toggleInference(key: string) {
     if (key === c.unsupportedInference.key) {
-      setShowLanguageNote(true);
+      setShowLanguageNote((prev) => !prev);
       return;
     }
     setSelectedInferences((prev) =>
@@ -151,7 +151,13 @@ export default function StoneToolsInvestigation({
             })}
             <button
               onClick={() => toggleInference(c.unsupportedInference.key)}
-              className="rounded border border-char-600 px-3 py-2.5 text-left text-sm text-parchment/80 transition hover:border-ember-500/60 focus:outline-none focus:ring-2 focus:ring-ochre-500"
+              aria-pressed={showLanguageNote}
+              className={
+                "rounded border px-3 py-2.5 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-ochre-500 " +
+                (showLanguageNote
+                  ? "border-ember-500 bg-ember-500/10 text-ember-300"
+                  : "border-char-600 text-parchment/80 hover:border-ember-500/60")
+              }
             >
               {c.unsupportedInference.label}
             </button>
