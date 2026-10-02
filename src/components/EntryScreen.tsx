@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CLASS_OPTIONS } from "@/content/classes";
 
 export default function EntryScreen({
   onBegin,
@@ -60,13 +61,19 @@ export default function EntryScreen({
             <label htmlFor="class" className="mb-1 block text-xs uppercase tracking-wide text-parchment/60">
               Class <span className="normal-case text-parchment/40">(optional)</span>
             </label>
-            <input
+            <select
               id="class"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
               className="w-full rounded border border-char-600 bg-char-900/80 px-3 py-2.5 text-parchment focus:border-ochre-500 focus:outline-none focus:ring-1 focus:ring-ochre-500"
-              placeholder="e.g. 10B"
-            />
+            >
+              <option value="">Select your class...</option>
+              {CLASS_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
           </div>
 
           {error && (
